@@ -10,7 +10,7 @@ forward = false;
 
 const bot = mineflayer.createBot({
   host: "mc.holyworld.me",
-  username: "YOUR NICKNAME",
+  username: "NICKNAME",
   version: "1.19.2",
 });
 
