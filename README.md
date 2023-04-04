@@ -17,7 +17,7 @@ All functions already on bot panel. To send message in server chat just send it 
 Bot logs messages in chat(works not very properly) and logs players showing up (and cords) and when they leaves from bot field of vision
 Also you can check near players, bot coords
 <hr>
-<h1>How to enter server to holyworld❓</h1>
+<h1>How to enter server on holyworld❓</h1>
 <img src="images/window.png" alt="Window example"></img>
 Choose it by this image and follow your number on EnterServer function <br>
 <code>bot.clickWindow(24, 0, 0)</code>
