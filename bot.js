@@ -28,11 +28,31 @@ const bot = mineflayer.createBot({
 
 const buttons = {
   reply_markup: JSON.stringify({
+    keyboard: [["Movement"], ["Cheat"], ["Player"], ["Enter"]],
+    resize_keyboard: true,
+  }),
+};
+const MovementButtons = {
+  reply_markup: JSON.stringify({
+    keyboard: [["/start"], ["Forward", "Shift"], ["LookAtMe"]],
+    resize_keyboard: true,
+  }),
+};
+
+const PlayerButtons = {
+  reply_markup: JSON.stringify({
     keyboard: [
+      ["/start"],
       ["Tpa", "Home", "Coordinates"],
-      ["Enter", "Near", "Disconnect"],
-      ["Forward", "Shift", "LookAtMe"],
+      ["Enter", "Disconnect"],
     ],
+    resize_keyboard: true,
+  }),
+};
+
+const CheatButtons = {
+  reply_markup: JSON.stringify({
+    keyboard: [["/start"], ["Farm", "Throw"]],
     resize_keyboard: true,
   }),
 };
@@ -64,6 +84,18 @@ tgbot.on("message", (msg) => {
       case "Tpa": {
         bot.chat("/tpa " + OwnerNickname);
         tgbot.sendMessage(msg.chat.id, `${msg.text} executed`);
+        break;
+      }
+      case "Player": {
+        tgbot.sendMessage(msg.chat.id, `${msg.text}`, PlayerButtons);
+        break;
+      }
+      case "Movement": {
+        tgbot.sendMessage(msg.chat.id, `${msg.text}`, MovementButtons);
+        break;
+      }
+      case "Cheat": {
+        tgbot.sendMessage(msg.chat.id, `${msg.text}`, CheatButtons);
         break;
       }
       case "Home": {
@@ -127,6 +159,14 @@ tgbot.on("message", (msg) => {
         );
         break;
       }
+      case "Farm": {
+        FarmFood(msg);
+        break;
+      }
+      case "Throw": {
+        throwAll(msg);
+        break;
+      }
       case "/start": {
         tgbot.sendMessage(msg.chat.id, "Welcome!", buttons);
         break;
@@ -151,7 +191,7 @@ function lookAtNearestPlayer() {
     const playerEntity = bot.nearestEntity(playerFilter);
     if (!playerEntity) {
       console.log("Can't see any player entity");
-      return;
+      return false;
     }
     const pos = playerEntity.position.offset(0, playerEntity.height, 0);
     bot.lookAt(pos);
@@ -171,7 +211,7 @@ function EnterServer(msg) {
   try {
     setTimeout(() => {
       bot.clickWindow(HolyServer, 0, 0);
-    }, 1000);
+    }, 1500);
     bot.chat("/anarchy");
     console.log("Opened window");
   } catch (error) {
@@ -182,25 +222,61 @@ function EnterServer(msg) {
     );
   }
 }
+async function expunge() {
+  var inventoryItemCount = bot.inventory.items().length;
+  if (inventoryItemCount === 0) return;
+  while (inventoryItemCount > 0) {
+    const item = bot.inventory.items()[0];
+    await bot.tossStack(item);
+    inventoryItemCount--;
+  }
+}
+
+async function throwAll(msg) {
+  if (lookAtNearestPlayer() === false) return;
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+  expunge();
+  tgbot.sendMessage(msg.chat.id, "Throwed");
+}
+
+async function FarmFood(msg) {
+  let food = 0;
+  try {
+    const itemsToClick = [
+      11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48,
+      49, 50, 51,
+    ];
+    for (let i = 0; i < itemsToClick.length; i++) {
+      bot.chat("/anarchy");
+      console.log("Opened window");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      bot.clickWindow(itemsToClick[i], 0, 0);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      bot.chat("/kit start");
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      bot.chat("/hub");
+      food += 8;
+      console.log("Server " + i + " ok");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    tgbot.sendMessage(msg.chat.id, "Farmed " + food);
+  } catch (error) {
+    console.error(error);
+    tgbot.sendMessage(
+      myId,
+      "Error occurred while executing farm function: " + error.message
+    );
+  }
+}
 
 const players = [];
+const mobs = [];
 
 bot.on("chat", (message, username) => {
   tgbot.sendMessage(myId, `<code>${username}: ${message}</code> `, {
     parse_mode: "HTML",
   });
-});
-
-bot.on("messagestr", (message) => {
-  const exceptions = ["ʟ |", "▶"];
-  if (exceptions.some((ex) => !message.startsWith(ex))) return;
-  console.log(`${message}`);
-  tgbot.sendMessage(myId, `${message}`);
-});
-
-bot.on("spawn", () => {
-  tgbot.sendMessage(myId, `Bot has successfully spawned`);
-  console.log("Bot has successfully spawned");
 });
 
 bot.on("entitySpawn", (entity) => {
@@ -246,6 +322,18 @@ bot.on("entityGone", (entity) => {
       `Mob disappeared nearby: ${entity.name} Coordinates: ${x}, ${y}, ${z}`
     );
   }
+});
+
+bot.on("messagestr", (message) => {
+  const exceptions = ["ʟ |", "▶"];
+  if (exceptions.some((ex) => !message.startsWith(ex))) return;
+  console.log(`${message}`);
+  tgbot.sendMessage(myId, `${message}`);
+});
+
+bot.on("spawn", () => {
+  tgbot.sendMessage(myId, `Bot has successfully spawned`);
+  console.log("Bot has successfully spawned");
 });
 
 bot.on("kicked", (reason) => tgbot.sendMessage(myId, "Kicked for", reason));
