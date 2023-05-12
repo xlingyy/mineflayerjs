@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "mineflayer": "^4.8.1",
+    "mineflayer-auto-eat": "^3.3.6"
+  }
+}
